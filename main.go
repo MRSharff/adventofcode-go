@@ -140,6 +140,38 @@ func day2() {
 	horizontal, depth := positionAfterCommands(getInput(2, 1))
 	answer := horizontal * depth
 	fmt.Println(answer)
+
+	positionAfterCommandsIncludingAim := func(input string) (horizontal int, depth int) {
+		aim := 0
+		commands := readCommands(input)
+		for _, c := range commands {
+			x := c.units
+			switch c.direction {
+			case "forward":
+				horizontal += x
+				depth += aim * x
+			case "down":
+				aim += x
+			case "up":
+				aim -= x
+			}
+		}
+		return
+	}
+
+	expectedHorizontal, expectedDepth = 15, 10
+	gotHorizontal, gotDepth = positionAfterCommandsIncludingAim("forward 5\ndown 5\nforward 8\nup 3\ndown 8\nforward 2")
+
+	expectedAnswer := 15 * 60 // = 900
+	gotAnswer := gotHorizontal * gotDepth
+	if expectedAnswer != gotAnswer {
+		fmt.Printf("expected %d, got %d\n", expectedAnswer, gotAnswer)
+	} else {
+		fmt.Println("tests passed")
+	}
+
+	h, d := positionAfterCommandsIncludingAim(getInput(2, 1))
+	fmt.Println(h * d)
 }
 
 func main() {
