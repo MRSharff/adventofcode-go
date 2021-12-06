@@ -89,6 +89,8 @@ func day1() {
 	fmt.Println(part2Answer)
 }
 
+// Dive
+// https://adventofcode.com/2021/day/2
 func day2() {
 	type command struct {
 		direction string
