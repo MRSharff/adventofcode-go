@@ -89,6 +89,60 @@ func day1() {
 	fmt.Println(part2Answer)
 }
 
+func day2() {
+	type command struct {
+		direction string
+		units     int
+	}
+	readCommands := func(input string) []command {
+		lines := strings.Fields(input)
+		commands := make([]command, len(lines)/2)
+		for d, u := 0, 1; d < len(lines)-1; d, u = d+2, u+2 {
+			i := d / 2
+			direction := lines[d]
+			units, err := strconv.Atoi(lines[u])
+			if err != nil {
+				panic(err)
+			}
+			commands[i] = command{direction, units}
+		}
+		return commands
+	}
+
+	positionAfterCommands := func(input string) (horizontal int, depth int) {
+		commands := readCommands(input)
+		for _, c := range commands {
+			switch c.direction {
+			case "forward":
+				horizontal += c.units
+			case "down":
+				depth += c.units
+			case "up":
+				depth -= c.units
+			}
+		}
+		return
+	}
+
+	expectedHorizontal, expectedDepth := 15, 10
+	gotHorizontal, gotDepth := positionAfterCommands("forward 5\ndown 5\nforward 8\nup 3\ndown 8\nforward 2")
+
+	if expectedHorizontal != gotHorizontal {
+		fmt.Printf("expected horizontal %d, got %d\n", expectedHorizontal, gotHorizontal)
+		panic("test failed")
+	}
+	if expectedDepth != gotDepth {
+		fmt.Printf("expected depth %d, got %d\n", expectedDepth, gotDepth)
+		panic("test failed")
+	}
+	fmt.Println("tests passed")
+
+	horizontal, depth := positionAfterCommands(getInput(2, 1))
+	answer := horizontal * depth
+	fmt.Println(answer)
+}
+
 func main() {
-	day1()
+	//day1()
+	day2()
 }
