@@ -97,14 +97,13 @@ func day2() {
 	readCommands := func(input string) []command {
 		lines := strings.Fields(input)
 		commands := make([]command, len(lines)/2)
-		for d, u := 0, 1; d < len(lines)-1; d, u = d+2, u+2 {
-			i := d / 2
-			direction := lines[d]
-			units, err := strconv.Atoi(lines[u])
+		for i := 0; i < len(lines)-1; i += 2 {
+			direction := lines[i]
+			units, err := strconv.Atoi(lines[i+1])
 			if err != nil {
 				panic(err)
 			}
-			commands[i] = command{direction, units}
+			commands[i/2] = command{direction, units}
 		}
 		return commands
 	}
