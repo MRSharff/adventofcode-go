@@ -175,7 +175,60 @@ func day2() {
 	fmt.Println(h * d)
 }
 
+// Binary Diagnostic
+// https://adventofcode.com/2021/day/3
+func day3() {
+	// input: diagnostic report is a list of binary numbers
+	testInput := "00100\n11110\n10110\n10111\n10101\n01111\n00111\n11100\n10000\n11001\n00010\n01010"
+
+	powerConsumption := func(input string, size int) int {
+		diagnosticReport := strings.Fields(input)
+		total := 0
+		sums := make([]int, size)
+		for _, bits := range diagnosticReport {
+			for i := 0; i < size; i++ {
+				if bits[i] == '1' {
+					sums[i]++
+				}
+			}
+			total++
+		}
+
+		mostCommonBits := make([]int, size)
+		half := total / 2
+		for i := 0; i < size; i++ {
+			oneMostCommon := sums[i] > half
+			if oneMostCommon {
+				mostCommonBits[i] = 1
+			}
+		}
+
+		gammaRate := 0
+		for i, shiftAmount := 0, size-1; i < size; i, shiftAmount = i+1, shiftAmount-1 {
+			bit := mostCommonBits[i]
+			gammaRate |= bit << shiftAmount
+		}
+
+		// we don't have uint5 so let's just work with uint16 and shift x amount left and right to clear the first x unused bits.
+		x := 16 - size
+		epsilonRate := int(^uint16(gammaRate) << x >> x)
+
+		return epsilonRate * gammaRate
+	}
+
+	expected := 198
+	got := powerConsumption(testInput, 5)
+	if expected != got {
+		fmt.Printf("expected %d, got %d", expected, got)
+	} else {
+		fmt.Println("test passed")
+	}
+
+	fmt.Println(powerConsumption(getInput(3, 1), 12))
+}
+
 func main() {
 	//day1()
-	day2()
+	//day2()
+	day3()
 }
