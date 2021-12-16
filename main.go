@@ -229,83 +229,50 @@ func day3() {
 	part2 := func(input string) int {
 		diagnosticReport := strings.Fields(input)
 		bitLength := len(diagnosticReport[0])
-		sums := make([]int, bitLength)
-		for _, bits := range diagnosticReport {
-			for i := 0; i < bitLength; i++ {
-				if bits[i] == '1' {
-					sums[i]++
-				}
-			}
-		}
-
-		mostCommonBits := make([]int, bitLength)
-		half := len(diagnosticReport) / 2
-
-		EQUALLYCOMMON := -1
-		for i := 0; i < bitLength; i++ {
-			oneMostCommon := sums[i] > half
-			zeroMostCommon := sums[i] < half
-			if oneMostCommon {
-				mostCommonBits[i] = 1
-			} else if zeroMostCommon {
-				mostCommonBits[i] = 0
-			} else { // equally common
-				mostCommonBits[i] = EQUALLYCOMMON
-			}
-		}
 
 		oxygenGeneratorList := make([]string, len(diagnosticReport))
 		copy(oxygenGeneratorList, diagnosticReport)
 
 		// filter loop
-		for i, mostCommonBit := range mostCommonBits {
-			fmt.Printf("Round %d\n", i)
-			tempOxygenGeneratorList := make([]string, 0, half)
+		for i := 0; i < bitLength && len(oxygenGeneratorList) > 1; i++ {
+			half := len(oxygenGeneratorList) / 2
+			zeroes := make([]string, 0, half)
+			ones := make([]string, 0, half)
+
 			for _, bits := range oxygenGeneratorList {
-				if mostCommonBit == EQUALLYCOMMON {
-					mostCommonBit = 1
-				}
-				if bits[i] == strconv.Itoa(mostCommonBit)[0] {
-					fmt.Printf("Keep 02: %s\n", bits)
-					tempOxygenGeneratorList = append(tempOxygenGeneratorList, bits)
+				if bits[i] == '0' {
+					zeroes = append(zeroes, bits)
+				} else {
+					ones = append(ones, bits)
 				}
 			}
-			oxygenGeneratorList = tempOxygenGeneratorList
-			if len(oxygenGeneratorList) == 1 {
-				break
-			}
-		}
-
-		leastCommonBits := make([]int, bitLength)
-		for i := 0; i < bitLength; i++ {
-			if mostCommonBits[i] == 0 {
-				leastCommonBits[i] = 1
-			} else if mostCommonBits[i] == 1 {
-				leastCommonBits[i] = 0
+			if len(ones) >= len(zeroes) {
+				oxygenGeneratorList = ones
 			} else {
-				leastCommonBits[i] = -1
+				oxygenGeneratorList = zeroes
 			}
 		}
 
-		c02ScrubberList := make([]string, len(diagnosticReport))
-		copy(c02ScrubberList, diagnosticReport)
+		co2ScrubberList := make([]string, len(diagnosticReport))
+		copy(co2ScrubberList, diagnosticReport)
 
 		// filter loop
-		for i, leastCommonBit := range leastCommonBits {
-			fmt.Printf("Round %d\n", i)
-			filteredC02ScrubberRatings := make([]string, 0, half)
-			for _, bits := range c02ScrubberList {
-				if leastCommonBit == EQUALLYCOMMON {
-					leastCommonBit = 0
-				}
-				if bits[i] == strconv.Itoa(leastCommonBit)[0] {
-					fmt.Printf("Keep C02: %s\n", bits)
-					filteredC02ScrubberRatings = append(filteredC02ScrubberRatings, bits)
+		for i := 0; i < bitLength && len(co2ScrubberList) > 1; i++ {
+			half := len(co2ScrubberList) / 2
+			zeroes := make([]string, 0, half)
+			ones := make([]string, 0, half)
+
+			for _, bits := range co2ScrubberList {
+				if bits[i] == '0' {
+					zeroes = append(zeroes, bits)
+				} else {
+					ones = append(ones, bits)
 				}
 			}
-			c02ScrubberList = filteredC02ScrubberRatings
-			if len(c02ScrubberList) == 1 {
-				break
+			if len(ones) < len(zeroes) {
+				co2ScrubberList = ones
+			} else {
+				co2ScrubberList = zeroes
 			}
 		}
 
@@ -313,17 +280,20 @@ func day3() {
 		if err != nil {
 			panic(err)
 		}
-		c02ScrubberRating, err := strconv.ParseInt(c02ScrubberList[0], 2, 0)
+		c02ScrubberRating, err := strconv.ParseInt(co2ScrubberList[0], 2, 0)
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println(oxygenGeneratorRating)
-		fmt.Println(c02ScrubberRating)
 		return int(oxygenGeneratorRating) * int(c02ScrubberRating)
 	}
 	lifeSupportRating := part2(testInput)
-	fmt.Println(lifeSupportRating)
-	// lifeSupportRating := oxygenGeneratorRating * c02ScrubberRating
+	expected = 230
+	if expected != lifeSupportRating {
+		fmt.Printf("expected %d, got %d\n", expected, lifeSupportRating)
+	} else {
+		fmt.Println("test passed")
+	}
+	fmt.Println(part2(day3Input))
 }
 
 func main() {
