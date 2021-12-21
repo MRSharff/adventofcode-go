@@ -23,20 +23,22 @@ type point struct {
 }
 type segment [2]point
 
-func solve(input string) int {
+func solve(input string, doDiagonals bool) int {
 	entries := strings.Split(input, "\n")
 	segments := make([]segment, len(entries))
 	var horizontals []*segment
 	var verticals []*segment
+	var diagonals []*segment
 	for i, entry := range entries {
 		s := segment{}
 		_, _ = fmt.Sscanf(entry, "%d,%d -> %d,%d", &s[0].x, &s[0].y, &s[1].x, &s[1].y)
 		segments[i] = s
 		if s[0].y == s[1].y {
 			horizontals = append(horizontals, &segments[i])
-		}
-		if s[0].x == s[1].x {
+		} else if s[0].x == s[1].x {
 			verticals = append(verticals, &segments[i])
+		} else {
+			diagonals = append(diagonals, &segments[i])
 		}
 	}
 
@@ -54,6 +56,9 @@ func solve(input string) int {
 	}
 	reorder(horizontals, func(s *segment) bool { return s[0].x > s[1].x })
 	reorder(verticals, func(s *segment) bool { return s[0].y > s[1].y })
+
+	// reorder diagonals, so we only have to check ys for which direction to go
+	reorder(diagonals, func(s *segment) bool { return s[0].x > s[1].x })
 
 	seen := map[point]int{}
 
@@ -80,6 +85,26 @@ func solve(input string) int {
 		}
 	}
 
+	if doDiagonals {
+		for i := 0; i < len(diagonals); i++ {
+			s := diagonals[i]
+			start = s[0]
+			end = s[1]
+			increase := func(p *point) { p.x++; p.y++ }
+			decrease := func(p *point) { p.x++; p.y-- }
+			var move func(p *point)
+			if start.y < end.y {
+				move = increase
+			} else {
+				move = decrease
+			}
+			for p := start; p != end; move(&p) {
+				seen[p]++
+			}
+			seen[end]++
+		}
+	}
+
 	overlappedPointCount := 0
 	for _, v := range seen {
 		if v > 1 {
@@ -91,7 +116,7 @@ func solve(input string) int {
 
 // Day 5: Hydrothermal Venture
 func main() {
-	got := solve(testInput)
+	got := solve(testInput, false)
 	expected := 5
 	if expected != got {
 		fmt.Printf("expected %d, got %d\n", expected, got)
@@ -104,9 +129,25 @@ func main() {
 
 	answer := func() int {
 		start := time.Now()
-		a := solve(in)
+		a := solve(in, false)
 		fmt.Println(time.Since(start).String())
 		return a
 	}
 	fmt.Println(answer())
+
+	got = solve(testInput, true)
+	expected = 12
+	if expected != got {
+		fmt.Printf("expected %d, got %d\n", expected, got)
+	} else {
+		fmt.Println("Test Passed!")
+	}
+
+	part2 := func() int {
+		start := time.Now()
+		a := solve(in, true)
+		fmt.Println(time.Since(start).String())
+		return a
+	}
+	fmt.Println(part2())
 }
