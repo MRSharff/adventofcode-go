@@ -41,6 +41,7 @@ func main() {
 
 	b, _ := ioutil.ReadFile("day11/input.txt")
 	part1(string(b))
+	part2(string(b))
 }
 
 func part1(in string) {
@@ -55,6 +56,28 @@ func part1(in string) {
 		printOctopuses()
 	}
 	fmt.Println("Total Flashes: ", flashCount)
+}
+
+func part2(in string) {
+	setOctopuses(in)
+	step := 0
+	for ; !synchronized(); step++ {
+		increaseEnergyLevels()
+		flash()
+		resetFlashedEnergyLevels()
+	}
+	fmt.Println("Synchronized on step", step)
+}
+
+func synchronized() bool {
+	for i := 0; i < len(octopuses); i++ {
+		for j := 0; j < len(octopuses[i]); j++ {
+			if octopuses[i][j] != 0 {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 func printOctopuses() {
