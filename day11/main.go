@@ -90,11 +90,12 @@ func printOctopuses() {
 	fmt.Println()
 }
 
+const possibleNeighbors = 8
+
 func setOctopuses(in string) {
 	octopuses = make([][]int, 0)
 	flashed = make([][]bool, 0)
 	flashCount = 0
-	energizer = make(chan int, 500)
 	for i, line := range strings.Split(in, "\n") {
 		octopuses = append(octopuses, []int{})
 		flashed = append(flashed, []bool{})
@@ -107,6 +108,8 @@ func setOctopuses(in string) {
 			flashed[i] = append(flashed[i], false)
 		}
 	}
+
+	energizer = make(chan int, possibleNeighbors*len(octopuses)*len(octopuses[0]))
 
 	// make sure the neighborCache is reset when we move to a different
 	// sized input, like from testInput to smallTest.
