@@ -9,7 +9,7 @@ import (
 )
 
 var adventInput = func() string {
-	b, _ := ioutil.ReadFile("day1/input.txt")
+	b, _ := ioutil.ReadFile("day01/input.txt")
 	return string(b)
 }()
 

@@ -53,7 +53,7 @@ func naive(in string) {
 
 // Day 7: The Treachery of Whales
 func main() {
-	b, _ := ioutil.ReadFile("day7/input.txt")
+	b, _ := ioutil.ReadFile("day07/input.txt")
 	naive(testInput)
 	naive(string(b))
 }

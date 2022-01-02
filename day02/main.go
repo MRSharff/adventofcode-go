@@ -8,7 +8,7 @@ import (
 )
 
 var input = func() string {
-	b, _ := ioutil.ReadFile("day2/input.txt")
+	b, _ := ioutil.ReadFile("day02/input.txt")
 	return string(b)
 }()
 
@@ -97,5 +97,3 @@ func main() {
 	h, d := positionAfterCommandsIncludingAim(input)
 	fmt.Println(h * d)
 }
-
-

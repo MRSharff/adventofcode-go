@@ -78,7 +78,7 @@ func main() {
 	}
 
 	// solve
-	b, _ := ioutil.ReadFile("day6/input.txt")
+	b, _ := ioutil.ReadFile("day06/input.txt")
 	maxDays = 80
 	fmt.Println(solve(string(b)))
 	maxDays = 256

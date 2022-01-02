@@ -204,7 +204,7 @@ func solveEntry(entry string) (int, int) {
 }
 
 func main() {
-	b, _ := ioutil.ReadFile("day8/input.txt")
+	b, _ := ioutil.ReadFile("day08/input.txt")
 	entries := strings.Split(string(b), "\n")
 
 	sum := 0

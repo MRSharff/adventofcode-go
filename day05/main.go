@@ -124,7 +124,7 @@ func main() {
 		fmt.Println("Test Passed!")
 	}
 
-	b, _ := ioutil.ReadFile("day5/input.txt")
+	b, _ := ioutil.ReadFile("day05/input.txt")
 	in := string(b)
 
 	answer := func() int {

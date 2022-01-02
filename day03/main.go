@@ -8,7 +8,7 @@ import (
 )
 
 var day3Input = func() string {
-	b, _ := ioutil.ReadFile("day3/input.txt")
+	b, _ := ioutil.ReadFile("day03/input.txt")
 	return string(b)
 }()
 

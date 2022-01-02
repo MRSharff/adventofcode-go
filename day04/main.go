@@ -112,7 +112,7 @@ func solve(filename string) (first, last []int) {
 }
 
 func main() {
-	first, last := solve("day4/test_input.txt")
+	first, last := solve("day04/test_input.txt")
 	expectedFirst := 4512
 	if expectedFirst != first[1] {
 		fmt.Printf("expected %d, got %d\n", expectedFirst, first[1])
@@ -121,7 +121,7 @@ func main() {
 		fmt.Println("test passed")
 	}
 
-	first, last = solve("day4/input.txt")
+	first, last = solve("day04/input.txt")
 	fmt.Printf("First: turn %d, total: %d\n", first[0], first[1])
 	fmt.Printf("Last: turn %d, total: %d\n", last[0], last[1])
 }

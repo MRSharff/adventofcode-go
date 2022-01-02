@@ -166,7 +166,7 @@ func main() {
 		fmt.Println(sum(riskLevels(h, lowPoints(h))...))
 	}
 	part1(testInput)
-	b, _ := ioutil.ReadFile("day9/input.txt")
+	b, _ := ioutil.ReadFile("day09/input.txt")
 	part1(string(b))
 
 	part2 := func(in string) {
