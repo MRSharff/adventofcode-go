@@ -33,71 +33,103 @@ var input = func() string {
 	return string(b)
 }()
 
+type fold func(paper) paper
+
+type dot struct {
+	x, y int
+}
+
+type paper struct {
+	width, height int
+	dots          map[dot]bool
+}
+
 // Day 13: Transparent Origami
 // https://adventofcode.com/2021/day/13
 func main() {
 	part1(testInput)
 	part1(input)
+
 	part2(testInput)
 	part2(input)
 }
 
 func part1(in string) {
 	p, folds := getPaperAndInstructions(in)
-	foldedPaper := foldPaper(p, folds[0])
-	fmt.Println("Total dots,", len(foldedPaper))
+	foldedPaper := folds[0](p)
+	fmt.Println(foldedPaper)
+	fmt.Println("Total dots,", len(foldedPaper.dots))
 }
 
 func part2(in string) {
 	p, folds := getPaperAndInstructions(in)
 	foldedPaper := p
 	for _, f := range folds {
-		foldedPaper = foldPaper(foldedPaper, f)
+		foldedPaper = f(foldedPaper)
 	}
-	printPaper(foldedPaper)
-	fmt.Println("Total dots,", len(foldedPaper))
+	fmt.Println(foldedPaper)
+	fmt.Println("Total dots,", len(foldedPaper.dots))
 }
 
-type point struct {
-	x, y int
+func (p *paper) addDot(x, y int) {
+	if p.width < x {
+		p.width = x
+	}
+	if p.height < y {
+		p.height = y
+	}
+	if p.dots == nil {
+		p.dots = make(map[dot]bool)
+	}
+	p.dots[dot{x, y}] = true
 }
-type paper map[point]bool
 
-func add(p paper, x, y int) {
-	p[point{x, y}] = true
-}
-
-type fold func(x, y int) (int, int)
-
-func up(pos int) fold {
-	return func(x, y int) (int, int) {
+func (p paper) foldUp(pos int) paper {
+	var foldedPaper paper
+	for d := range p.dots {
+		x, y := d.x, d.y
 		if y < pos {
-			return x, y
+			foldedPaper.addDot(x, y)
+		} else {
+			foldedPaper.addDot(x, pos-(y-pos))
 		}
-		return x, pos - (y - pos)
 	}
-}
-
-func left(pos int) fold {
-	return func(x, y int) (int, int) {
-		if x < pos {
-			return x, y
-		}
-		return pos - (x - pos), y
-	}
-}
-
-func foldPaper(p paper, f fold) paper {
-	foldedPaper := make(map[point]bool)
-	for pt := range p {
-		x, y := pt.x, pt.y
-		x2, y2 := f(x, y)
-		add(foldedPaper, x2, y2)
-	}
+	foldedPaper.height = pos - 1
 	return foldedPaper
 }
 
-func getPaperAndInstructions(in string) (map[point]bool, []fold) {
+func (p paper) foldLeft(pos int) paper {
+	var foldedPaper paper
+	for d := range p.dots {
+		x, y := d.x, d.y
+		if x < pos {
+			foldedPaper.addDot(x, y)
+		} else {
+			foldedPaper.addDot(pos-(x-pos), y)
+		}
+	}
+	foldedPaper.width = pos - 1
+	return foldedPaper
+}
+
+func (p paper) String() string {
+	sb := strings.Builder{}
+	for y := 0; y <= p.height; y++ {
+		for x := 0; x <= p.width; x++ {
+			if p.dots[dot{x, y}] {
+				sb.WriteRune('#')
+			} else {
+				sb.WriteRune('.')
+			}
+		}
+		if y < p.height {
+			sb.WriteRune('\n')
+		}
+	}
+	return sb.String()
+}
+
+func getPaperAndInstructions(in string) (paper, []fold) {
 	split := strings.Split(in, "\n\n")
 	pointStrings := strings.Split(split[0], "\n")
 	foldStrings := strings.Split(split[1], "\n")
@@ -115,13 +147,17 @@ func getPaperAndInstructions(in string) (map[point]bool, []fold) {
 		}
 
 		if axis == 'y' {
-			folds = append(folds, up(position))
+			folds = append(folds, func(p paper) paper {
+				return p.foldUp(position)
+			})
 		} else {
-			folds = append(folds, left(position))
+			folds = append(folds, func(p paper) paper {
+				return p.foldLeft(position)
+			})
 		}
 	}
 
-	ppr := make(map[point]bool)
+	var ppr paper
 	for _, p := range pointStrings {
 		var x, y int
 		scanned, err := fmt.Sscanf(p, "%d,%d", &x, &y)
@@ -131,36 +167,7 @@ func getPaperAndInstructions(in string) (map[point]bool, []fold) {
 		if scanned != 2 {
 			panic("Did not find x and y:" + p)
 		}
-		ppr[point{x, y}] = true
+		ppr.addDot(x, y)
 	}
 	return ppr, folds
-}
-
-func printPaper(p paper) {
-	maxX, maxY := 0, 0
-	for pt := range p {
-		x, y := pt.x, pt.y
-		if y > maxY {
-			maxY = y
-		}
-		if x > maxX {
-			maxX = x
-		}
-	}
-
-	sb := strings.Builder{}
-	for y := 0; y <= maxY; y++ {
-		for x := 0; x <= maxX; x++ {
-			_, dotted := p[point{x, y}]
-			if dotted {
-				sb.WriteRune('#')
-			} else {
-				sb.WriteRune('.')
-			}
-		}
-		if y < maxY {
-			sb.WriteRune('\n')
-		}
-	}
-	fmt.Println(sb.String())
 }
