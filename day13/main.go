@@ -38,11 +38,22 @@ var input = func() string {
 func main() {
 	part1(testInput)
 	part1(input)
+	part2(testInput)
+	part2(input)
 }
 
 func part1(in string) {
 	p, folds := getPaperAndInstructions(in)
 	foldedPaper := foldPaper(p, folds[0])
+	fmt.Println("Total dots,", len(foldedPaper))
+}
+
+func part2(in string) {
+	p, folds := getPaperAndInstructions(in)
+	foldedPaper := p
+	for _, f := range folds {
+		foldedPaper = foldPaper(foldedPaper, f)
+	}
 	printPaper(foldedPaper)
 	fmt.Println("Total dots,", len(foldedPaper))
 }
