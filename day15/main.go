@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/MRSharff/algo/graph"
 	"io/ioutil"
-	"math"
 	"strconv"
 	"strings"
 )
@@ -28,6 +28,11 @@ var smallInput = `111
 441
 441`
 
+var pathShouldGoUpInput = `19111
+19191
+11191
+99991`
+
 func main() {
 	// * motion restricted to 2 dimensions
 	// * cavern is a square (or at least resembles one)
@@ -41,165 +46,81 @@ func main() {
 		panic("Test failed")
 	}
 
+	fmt.Println(part1(pathShouldGoUpInput))
+
 	fmt.Println(part1(in))
+
+	//totalRisk := part2(testInput)
+	//if totalRisk != 315 {
+	//	panic("Part 2 test failed. Expected 315, got, " + strconv.Itoa(totalRisk))
+	//} else {
+	//	fmt.Println("Part 2 test passed!")
+	//}
 }
 
-type point struct {
-	x, y int
+type riskGraph struct {
+	nodes         []int
+	width, height int
 }
 
-type node struct {
-	p         point
-	riskLevel int
-}
+func (r riskGraph) Neighbors(f graph.Node) []graph.Node {
+	n := int(f)
+	height := r.height
+	width := r.width
+	row := n / width
+	col := n % width
+	// can we skip left nodes, also perhaps top nodes?
+	hasTop, hasRight, hasBottom := row != 0, col != width-1, row != height-1
+	_ = hasTop
 
-type queue struct {
-	q           chan node
-	length      int
-	containsMap map[node]bool
-}
-
-func (q *queue) add(n node) {
-	// TODO: probably need to make sure we don't add to a full queue
-	q.q <- n
-	q.length++
-	if q.containsMap == nil {
-		q.containsMap = make(map[node]bool)
+	var neighbors []graph.Node
+	if hasTop {
+		top := n - width
+		neighbors = append(neighbors, graph.Node(top))
 	}
-	q.containsMap[n] = true
+
+	if hasRight {
+		right := f + 1
+		neighbors = append(neighbors, right)
+	}
+
+	if hasBottom {
+		bottom := n + width
+		neighbors = append(neighbors, graph.Node(bottom))
+	}
+
+	return neighbors
 }
 
-func (q *queue) remove() node {
-	if q.isEmpty() {
-		panic("remove called on empty queue")
-	}
-	n := <-q.q
-	q.length--
-	delete(q.containsMap, n)
-	return n
+func (r riskGraph) Weight(f graph.Node, neighbor graph.Node) int {
+	return r.nodes[neighbor]
 }
 
-func (q *queue) isEmpty() bool {
-	return q.length == 0
-}
+func part2(input string) int {
 
-func (q *queue) Len() int {
-	return q.length
-}
-
-func (q *queue) contains(u node) bool {
-	return q.containsMap[u]
-}
-
-type graph struct {
-	nodes         map[point]node
-	neighborCache map[node][]node
-}
-
-func (g *graph) addNode(n node) {
-	if g.nodes == nil {
-		g.nodes = make(map[point]node)
-	}
-	g.nodes[n.p] = n
-}
-
-func (g *graph) neighbors(u node) []node {
-	var ns []node
-	var isCached bool
-	if g.neighborCache == nil {
-		g.neighborCache = make(map[node][]node)
-	}
-	ns, isCached = g.neighborCache[u]
-	if isCached {
-		return ns
-	}
-	p := u.p
-	topPoint := point{p.x, p.y - 1}
-	rightPoint := point{p.x + 1, p.y}
-	bottomPoint := point{p.x, p.y + 1}
-	leftPoint := point{p.x - 1, p.y}
-	if top, hasTop := g.nodes[topPoint]; hasTop {
-		ns = append(ns, top)
-	}
-	if right, hasRight := g.nodes[rightPoint]; hasRight {
-		ns = append(ns, right)
-	}
-	if bottom, hasBottom := g.nodes[bottomPoint]; hasBottom {
-		ns = append(ns, bottom)
-	}
-	if left, hasLeft := g.nodes[leftPoint]; hasLeft {
-		ns = append(ns, left)
-	}
-	g.neighborCache[u] = ns
-	return ns
+	return 0
 }
 
 func part1(in string) int {
-	g := graph{}
+	var nodes []int
 	lines := strings.Split(in, "\n")
-	for y, line := range lines {
-		for x, c := range line {
+	for _, line := range lines {
+		for _, c := range line {
 			riskLevel, err := strconv.Atoi(string(c))
 			if err != nil {
 				panic(err)
 			}
-			g.addNode(node{point{x, y}, riskLevel})
+			nodes = append(nodes, riskLevel)
 		}
 	}
-	endPoint := point{len(lines[0]) - 1, len(lines) - 1}
-	start := g.nodes[point{0, 0}]
-	end := g.nodes[endPoint]
-	return dijkstras(g, start, end)
-}
+	height, width := len(lines), len(lines[0])
+	start := graph.Node(0)
+	end := graph.Node((width * height) - 1)
 
-func dijkstras(g graph, src node, dst node) int {
-	distances := make(map[node]int)
-	q := queue{q: make(chan node, len(g.nodes))}
-	visited := make(map[node]bool)
-	distances[src] = 0
-	for _, v := range g.nodes {
-		if v != src {
-			distances[v] = math.MaxInt64
-		}
-		q.add(v)
+	rg := riskGraph{
+		nodes:  nodes,
+		width:  width,
+		height: height,
 	}
-
-	for !q.isEmpty() {
-		v := removeMinDistanceNodeNotAlreadyVisited(&q, distances, visited)
-		visited[v] = true
-		var neighbors []node
-		neighbors = g.neighbors(v)
-		for _, u := range neighbors {
-			if visited[u] {
-				continue
-			}
-			// the distance to any point will always be its risk level, so edges don't *really* matter
-			d := distances[v] + u.riskLevel
-			if d < distances[u] {
-				distances[u] = d
-			}
-		}
-	}
-	return distances[dst]
-}
-
-func removeMinDistanceNodeNotAlreadyVisited(q *queue, distances map[node]int, visited map[node]bool) node {
-	l := q.Len()
-	var v node
-	found := false
-	min := math.MaxInt64
-	for i := 0; i < l; i++ {
-		n := q.remove()
-		if !visited[n] && distances[n] < min {
-			if found {
-				q.add(v)
-			}
-			v = n
-			min = distances[n]
-			found = true
-		} else {
-			q.add(n)
-		}
-	}
-	return v
+	return graph.Dijkstras(rg, start, end)
 }
