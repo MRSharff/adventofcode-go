@@ -13,82 +13,57 @@ var in = func() string {
 	return string(b)
 }()
 
-var testInput = `1163751742
-1381373672
-2136511328
-3694931569
-7463417111
-1319128137
-1359912421
-3125421639
-1293138521
-2311944581`
-
-var smallInput = `111
-441
-441`
-
-var pathShouldGoUpInput = `19111
-19191
-11191
-99991`
-
 func main() {
-	// * motion restricted to 2 dimensions
-	// * cavern is a square (or at least resembles one)
-	// * The starting position is never entered, so its risk is not counted.
-
-	// I think this is a search problem with edge weights being the risk levels
-	// Dijkstras
-	fmt.Println(part1(smallInput))
-
-	if part1(testInput) != 40 {
-		panic("Test failed")
-	}
-
-	fmt.Println(part1(pathShouldGoUpInput))
-
+	// We use Dijkstras to find the shortest path from top left, to bottom right.
+	// Each risk level is the edge weight.
 	fmt.Println(part1(in))
-
-	//totalRisk := part2(testInput)
-	//if totalRisk != 315 {
-	//	panic("Part 2 test failed. Expected 315, got, " + strconv.Itoa(totalRisk))
-	//} else {
-	//	fmt.Println("Part 2 test passed!")
-	//}
+	fmt.Println(part2(in))
 }
 
 type riskGraph struct {
-	nodes         []int
+	// nodes is a list of risks, we reference them by their index in this slice.
+	nodes []int
+
+	// the cave is technically an nxn matrix, m = height = width
 	width, height int
 }
 
-func (r riskGraph) Neighbors(f graph.Node) []graph.Node {
-	n := int(f)
-	height := r.height
-	width := r.width
-	row := n / width
-	col := n % width
-	// can we skip left nodes, also perhaps top nodes?
-	hasTop, hasRight, hasBottom := row != 0, col != width-1, row != height-1
-	_ = hasTop
+// I really want to pull all this graph stuff out since it's required for AoC so often.
+// I'm at least starting with Dijkstras in github.com/MRSharff/algo
+func findNeighbors(index, width, height int) []int {
+	row := index / width
+	col := index % width
+	hasTop, hasRight, hasBottom, hasLeft := row != 0, col != width-1, row != height-1, col != 0
 
-	var neighbors []graph.Node
+	var neighbors []int
 	if hasTop {
-		top := n - width
-		neighbors = append(neighbors, graph.Node(top))
+		top := index - width
+		neighbors = append(neighbors, top)
 	}
 
 	if hasRight {
-		right := f + 1
+		right := index + 1
 		neighbors = append(neighbors, right)
 	}
 
 	if hasBottom {
-		bottom := n + width
-		neighbors = append(neighbors, graph.Node(bottom))
+		bottom := index + width
+		neighbors = append(neighbors, bottom)
 	}
 
+	if hasLeft {
+		left := index - 1
+		neighbors = append(neighbors, left)
+	}
+
+	return neighbors
+}
+
+func (r riskGraph) Neighbors(f graph.Node) []graph.Node {
+	var neighbors []graph.Node
+	for _, n := range findNeighbors(int(f), r.width, r.height) {
+		neighbors = append(neighbors, graph.Node(n))
+	}
 	return neighbors
 }
 
@@ -96,12 +71,70 @@ func (r riskGraph) Weight(f graph.Node, neighbor graph.Node) int {
 	return r.nodes[neighbor]
 }
 
-func part2(input string) int {
+func (r riskGraph) getStart() graph.Node {
+	return graph.Node(0)
+}
 
-	return 0
+func (r riskGraph) getEnd() graph.Node {
+	return graph.Node((r.width * r.height) - 1)
+}
+
+type repeatRisk struct {
+	riskGraph
+	repeat int // This is 5 in the AoC prompt, but I want to test with some smaller inputs.
+}
+
+func (r repeatRisk) Weight(f graph.Node, neighbor graph.Node) int {
+	// This would be much easier with a 2d array instead.
+	n := int(neighbor)
+	col := n % (r.width * r.repeat)
+	row := n / (r.height * r.repeat)
+	smallCol := col % r.width
+	smallRow := row % r.height
+	smallNode := r.width*smallRow + smallCol
+
+	rowMod := row / r.height
+	colMod := col / r.width
+	weight := r.riskGraph.Weight(f, graph.Node(smallNode)) + rowMod + colMod
+	if weight > 9 {
+		weight -= 9
+	}
+	return weight
+}
+
+func (r repeatRisk) Neighbors(f graph.Node) []graph.Node {
+	var neighbors []graph.Node
+	for _, n := range findNeighbors(int(f), r.width*r.repeat, r.height*r.repeat) {
+		neighbors = append(neighbors, graph.Node(n))
+	}
+	return neighbors
+}
+
+func (r repeatRisk) getEnd() graph.Node {
+	width := r.width * r.repeat
+	height := r.height * r.repeat
+	return graph.Node(width*height - 1)
+}
+
+func part2(input string) int {
+	g := buildRiskGraph(input)
+	rg := repeatRisk{
+		riskGraph: g,
+		repeat:    5,
+	}
+	start := rg.getStart()
+	end := rg.getEnd()
+
+	return graph.Dijkstras(rg, start, end)
 }
 
 func part1(in string) int {
+	rg := buildRiskGraph(in)
+	start, end := rg.getStart(), rg.getEnd()
+	return graph.Dijkstras(rg, start, end)
+}
+
+func buildRiskGraph(in string) riskGraph {
 	var nodes []int
 	lines := strings.Split(in, "\n")
 	for _, line := range lines {
@@ -114,13 +147,11 @@ func part1(in string) int {
 		}
 	}
 	height, width := len(lines), len(lines[0])
-	start := graph.Node(0)
-	end := graph.Node((width * height) - 1)
 
 	rg := riskGraph{
 		nodes:  nodes,
 		width:  width,
 		height: height,
 	}
-	return graph.Dijkstras(rg, start, end)
+	return rg
 }
