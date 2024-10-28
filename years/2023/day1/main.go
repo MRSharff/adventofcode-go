@@ -66,7 +66,6 @@ func part2(calibrationDocument io.Reader) int {
 	scanner := bufio.NewScanner(calibrationDocument)
 	for scanner.Scan() {
 		line := scanner.Text()
-		log.Println(line)
 
 		var startDigit int
 		i := 0
