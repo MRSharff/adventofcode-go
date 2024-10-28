@@ -138,3 +138,40 @@ func part2(calibrationDocument io.Reader) int {
 	}
 	return sum
 }
+
+//func part2(calibrationDocument io.Reader) int {
+//
+//	var sum int
+//	scanner := bufio.NewScanner(calibrationDocument)
+//	for scanner.Scan() {
+//		line := scanner.Text()
+//
+//		startDigit := 0
+//		i := 0
+//		for i < len(line) {
+//			if '0' <= line[i] && line[i] <= '9' {
+//				startDigit = int(line[i] - '0')
+//				break
+//			}
+//			for j := i + 1; j < len(line); j++ {
+//				buf := line[i:j]
+//				for _, c := range candidates {
+//					if strings.EqualFold(c, buf) {
+//						startDigit = digitMap[buf]
+//
+//					}
+//					if !strings.HasPrefix(c, buf) {
+//
+//					}
+//				}
+//
+//			}
+//		}
+//		end := len(line) - 1
+//		for line[end] < '0' || '9' < line[end] {
+//			end--
+//		}
+//		sum += 10*int(line[start]-'0') + int(line[end]-'0')
+//	}
+//	return sum
+//}
