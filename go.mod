@@ -1,4 +1,4 @@
-module adventofcode-go
+module github.com/MRSharff/adventofcode-go
 
 go 1.23
 
