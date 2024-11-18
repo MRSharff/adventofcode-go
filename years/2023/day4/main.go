@@ -68,3 +68,44 @@ func part1(r io.Reader) int {
 	}
 	return points
 }
+
+func part2(r io.Reader) int {
+	scanner := bufio.NewScanner(r)
+
+	winningCards := make(map[int]int)
+
+	var points int
+	for scanner.Scan() {
+		tokens := bufio.NewScanner(strings.NewReader(scanner.Text()))
+		tokens.Split(bufio.ScanWords)
+		tokens.Scan()
+		tokens.Scan()
+
+		winningNumbers := make(map[int]struct{})
+		i := 0
+		for tokens.Scan() {
+			s := tokens.Text()
+			if s == "|" {
+				break
+			}
+			var n int
+			fmt.Sscanf(s, "%d", &n)
+			winningNumbers[n] = struct{}{}
+		}
+		var matches int
+		for tokens.Scan() {
+			s := tokens.Text()
+			var n int
+			fmt.Sscanf(s, "%d", &n)
+			if _, ok := winningNumbers[n]; ok {
+				matches++
+			}
+		}
+		if matches > 0 {
+			winningCards[i] = 1 << (matches - 1)
+		}
+		i++
+	}
+
+	return points
+}
