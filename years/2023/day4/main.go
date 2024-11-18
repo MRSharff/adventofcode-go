@@ -31,8 +31,20 @@ func main() {
 	}
 
 	log.Println(part1(bytes.NewReader(input)))
+
+	testGot = part2(inputs.NewBytesReader([]byte(testInput)))
+	if testGot != 30 {
+		log.Fatal("expected 30, got", testGot)
+	}
+
+	log.Println(part2(bytes.NewReader(input)))
 }
 
+/*
+The idea here is to have a multiplier for each card. Card 1 technically does not have a multiplier.
+
+When a card has winning matches you multiply
+*/
 func part1(r io.Reader) int {
 	scanner := bufio.NewScanner(r)
 
@@ -67,4 +79,52 @@ func part1(r io.Reader) int {
 		}
 	}
 	return points
+}
+
+func part2(r io.Reader) int {
+	scanner := bufio.NewScanner(r)
+
+	scratchcards := make(map[int]int)
+
+	card := 1
+	for scanner.Scan() {
+		tokens := bufio.NewScanner(strings.NewReader(scanner.Text()))
+		tokens.Split(bufio.ScanWords)
+		tokens.Scan()
+		tokens.Scan()
+
+		scratchcards[card]++ // add the original
+		copies := scratchcards[card]
+
+		winningNumbers := make(map[int]struct{})
+		for tokens.Scan() {
+			s := tokens.Text()
+			if s == "|" {
+				break
+			}
+			var n int
+			fmt.Sscanf(s, "%d", &n)
+			winningNumbers[n] = struct{}{}
+		}
+		var matches int
+		for tokens.Scan() {
+			s := tokens.Text()
+			var n int
+			fmt.Sscanf(s, "%d", &n)
+			if _, ok := winningNumbers[n]; ok {
+				matches++
+			}
+		}
+		card++
+		for i := card; i < card+matches; i++ {
+			scratchcards[i] = scratchcards[i] + copies
+		}
+	}
+
+	var totalScrachCards int
+	for _, v := range scratchcards {
+		totalScrachCards += v
+	}
+
+	return totalScrachCards
 }
