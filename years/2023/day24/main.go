@@ -27,7 +27,7 @@ func main() {
 }
 
 func part1(r io.Reader) int {
-	t := 0
-	a := 19-2*t == 18-1*t
-
+	//t := 0
+	//a := 19-2*t == 18-1*t
+	return 0
 }
